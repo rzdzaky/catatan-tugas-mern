@@ -1,9 +1,11 @@
 const asyncHandler = require("express-async-handler")
+const { globalAgent } = require("http")
+const Task = require('../models/taskModel')
 
 const getTasks = asyncHandler(async (req, res) => {
-  res.status(200).json({
-    message: "get tasks",
-  })
+  const tasks = await Task.find()
+
+  res.status(200).json(tasks)
 })
 
 const addTask = asyncHandler(async (req, res) => {
@@ -14,21 +16,45 @@ const addTask = asyncHandler(async (req, res) => {
     throw new Error("Add all fields!")
   }
 
-  res.status(200).json({
-    message: "add task",
+  const task = await Task.create({
+    matkul,
+    judul,
+    deskripsi,
+    deadline,
+    status
   })
+
+  res.status(200).json(task)
 })
 
 const editTask = asyncHandler(async (req, res) => {
-  res.status(200).json({
-    message: `edit task ${req.params.id}`,
+  const task = await Task.findById(req.params.id)
+
+  if(!task) {
+    res.status(400)
+    throw new Error('Goal not found')
+  }
+
+  const editedTask = await Task.findByIdAndUpdate(
+    req.params.id,
+    req.body,{
+      new: true
   })
+
+  res.status(200).json(editedTask)
 })
 
 const deleteTask = asyncHandler(async (req, res) => {
-  res.status(200).json({
-    message: `delete task ${req.params.id}`,
-  })
+  const task = await Task.findById(req.params.id)
+
+  if (!task) {
+    res.status(400)
+    throw new Error("Goal not found")
+  }
+
+  await Task.remove()
+
+  res.status(200).json({id: req.params.id})
 })
 
 module.exports = {
